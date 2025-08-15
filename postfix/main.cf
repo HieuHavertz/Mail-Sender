@@ -1,0 +1,44 @@
+# Basic configuration
+myhostname = mail.localhost
+mydomain = localhost
+myorigin = $mydomain
+inet_interfaces = all
+inet_protocols = ipv4
+mydestination = $myhostname, localhost, $mydomain
+
+# Network settings
+mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+# SMTP Auth
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_type = plain
+smtpd_sasl_path = /etc/postfix/sasl:/usr/lib/sasl2
+smtpd_sasl_authenticated_header = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+broken_sasl_auth_clients = yes
+
+# TLS settings
+smtpd_use_tls = yes
+smtpd_tls_cert_file = /etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_tls_security_level = may
+smtpd_tls_auth_only = no
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom
+
+# Restrictions
+smtpd_recipient_restrictions = 
+    permit_sasl_authenticated,
+    permit_mynetworks,
+    reject_unauth_destination
+
+smtpd_sender_restrictions = 
+    permit_sasl_authenticated,
+    permit_mynetworks
+
+# Mailbox settings
+home_mailbox = Maildir/
+mailbox_command = 

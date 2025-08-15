@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  web-app:
+    build: ./app
+    container_name: email-web-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Gmail SMTP Configuration
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=hieuhonda713@gmail.com
+      - SMTP_PASS=atccnzcypuvivbmh
+      - FROM_EMAIL=hieuhonda713@gmail.com
+      - PORT=3000
+    volumes:
+      - email_data:/app/data
+    networks:
+      - email-network
+    restart: unless-stopped
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: email-mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - email-network
+    restart: unless-stopped
+
+volumes:
+  email_data:
+    driver: local
+
+networks:
+  email-network:
+    driver: bridge
