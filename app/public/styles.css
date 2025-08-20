@@ -322,3 +322,92 @@ body {
         font-size: 2em;
     }
 }
+
+/* File list styles */
+.file-list {
+    margin-top: 10px;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #e9ecef;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.file-size {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 2px;
+}
+
+.remove-file-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-file-btn:hover {
+    background: #c82333;
+}
+
+.files-total {
+    background: #e7f3ff;
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 5px;
+    text-align: center;
+    color: #0066cc;
+}
+
+/* Status message styles */
+.status-message {
+    margin-bottom: 20px;
+}
+
+.status {
+    padding: 12px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status.loading {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}

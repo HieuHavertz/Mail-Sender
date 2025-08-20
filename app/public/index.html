@@ -34,12 +34,14 @@
                     
                     <div class="form-group">
                         <label for="message">Message: *</label>
-                        <textarea id="message" name="message" rows="6" required placeholder="Your message here..."></textarea>
+                        <textarea id="message" name="message" rows="6" required placeholder="Type your message here..."></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="attachments">Attachments:</label>
-                        <input type="file" id="attachments" name="attachments" multiple class="file-input">
+                        <label for="attachments">Attachments (max 5 files, 10MB each):</label>
+                        <input type="file" id="attachments" name="attachments" multiple 
+                               accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.zip,.rar,.xlsx,.xls,.ppt,.pptx">
+                        <div id="fileList" class="file-list"></div>
                     </div>
                     
                     <button type="submit" class="submit-btn">Send Email</button>
@@ -47,212 +49,16 @@
             </div>
             
             <div class="history-section">
-                <h2 class="section-title">
-                    📋 Email History
-                </h2>
-                
+                <h2 class="section-title">📋 Email History</h2>
                 <div class="history-controls">
-                    <input type="text" id="searchBox" class="search-box" placeholder="Search by subject...">
-                    <button id="refreshBtn" class="refresh-btn">🔄 Refresh</button>
+                    <input type="text" id="searchInput" class="search-box" placeholder="Search emails by subject...">
                 </div>
-                
-                <div id="emailList" class="email-list">
-                    <div class="no-emails">No emails sent yet</div>
-                </div>
-                
+                <div id="emailList" class="email-list"></div>
                 <div id="pagination" class="pagination"></div>
             </div>
         </div>
     </div>
-
-    <script>
-        let currentPage = 1;
-        let totalPages = 1;
-        let allEmails = [];
-        let filteredEmails = [];
-
-        // Show status message
-        function showStatus(message, type) {
-            const statusDiv = document.getElementById('statusMessage');
-            statusDiv.textContent = message;
-            statusDiv.className = `status-message status-${type}`;
-            statusDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        // Handle form submission
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-            
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            // Validate required fields
-            const to = formData.get('to');
-            const subject = formData.get('subject');
-            const message = formData.get('message');
-            
-            if (!to || !subject || !message) {
-                showStatus('Please fill in all required fields', 'error');
-                return;
-            }
-            
-            try {
-                showStatus('Sending email...', 'info');
-                
-                const response = await fetch('/api/send-email', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    showStatus('Email sent successfully!', 'success');
-                    form.reset();
-                    loadEmailHistory();
-                } else {
-                    showStatus(result.message || 'Failed to send email', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showStatus('Network error: ' + error.message, 'error');
-            }
-        }
-
-        // Load email history
-        async function loadEmailHistory(page = 1) {
-            try {
-                const response = await fetch(`/api/emails?page=${page}&limit=10`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    allEmails = data.emails;
-                    currentPage = data.pagination.currentPage;
-                    totalPages = data.pagination.totalPages;
-                    
-                    applySearch();
-                    updatePagination();
-                }
-            } catch (error) {
-                console.error('Error loading emails:', error);
-            }
-        }
-
-        // Apply search filter (only search subject)
-        function applySearch() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
-            if (searchTerm) {
-                filteredEmails = allEmails.filter(email => 
-                    email.subject.toLowerCase().includes(searchTerm)
-                );
-            } else {
-                filteredEmails = [...allEmails];
-            }
-            
-            displayEmails(filteredEmails);
-        }
-
-        // Display emails
-        function displayEmails(emails) {
-            const emailList = document.getElementById('emailList');
-            
-            if (emails.length === 0) {
-                emailList.innerHTML = '<div class="no-emails">No emails found</div>';
-                return;
-            }
-            
-            emailList.innerHTML = emails.map(email => `
-                <div class="email-item" onclick="selectEmail('${email.id}')">
-                    <div class="email-header">
-                        <div class="email-to">${email.to}</div>
-                        <div class="email-date">${new Date(email.sent_at).toLocaleDateString()}</div>
-                    </div>
-                    <div class="email-subject">${email.subject}</div>
-                    <div class="email-preview">${email.message.substring(0, 100)}${email.message.length > 100 ? '...' : ''}</div>
-                    ${email.attachments && email.attachments.length > 0 ? 
-                        `<div style="margin-top: 8px; font-size: 12px; color: #6c757d;">📎 ${email.attachments.length} attachment(s)</div>` : ''
-                    }
-                </div>
-            `).join('');
-        }
-
-        // Update pagination
-        function updatePagination() {
-            const pagination = document.getElementById('pagination');
-            
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            let paginationHTML = '';
-            
-            // Previous button
-            paginationHTML += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-            
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === currentPage) {
-                    paginationHTML += `<button class="current-page">${i}</button>`;
-                } else {
-                    paginationHTML += `<button onclick="changePage(${i})">${i}</button>`;
-                }
-            }
-            
-            // Next button
-            paginationHTML += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-            
-            pagination.innerHTML = paginationHTML;
-        }
-
-        // Change page
-        function changePage(page) {
-            if (page >= 1 && page <= totalPages && page !== currentPage) {
-                loadEmailHistory(page);
-            }
-        }
-
-        // Select email (placeholder for future functionality)
-        function selectEmail(emailId) {
-            // Remove previous selection
-            document.querySelectorAll('.email-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            // Add selection to clicked item
-            event.target.closest('.email-item').classList.add('selected');
-            
-            console.log('Selected email ID:', emailId);
-        }
-
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Attach form submit handler
-            const emailForm = document.getElementById('emailForm');
-            if (emailForm) {
-                emailForm.addEventListener('submit', handleFormSubmit);
-            }
-            
-            // Attach search handler
-            const searchBox = document.getElementById('searchBox');
-            if (searchBox) {
-                searchBox.addEventListener('input', applySearch);
-            }
-            
-            // Attach refresh handler
-            const refreshBtn = document.getElementById('refreshBtn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => loadEmailHistory(currentPage));
-            }
-            
-            // Load initial email history
-            loadEmailHistory();
-        });
-    </script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
